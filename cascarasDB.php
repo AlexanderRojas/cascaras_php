@@ -1,117 +1,76 @@
 <?php
 
-class GastoDB {
+class CascarasDB {
     
     protected $mysqli;
     const LOCALHOST = '127.0.0.1';
-    const USER = 'alexander';
-    const PASSWORD = 'alexander';
-    const DATABASE = 'gastos';
-
-    
+    const USER = 'root';
+    const PASSWORD = '';
+    const DATABASE = 'cascaras';
     /**
      * Constructor de clase
      */
-    public function __construct() {           
+    public function __construct() {
+        mysqli_report(MYSQLI_REPORT_STRICT);           
         try{
             //conexión a base de datos
             $this->mysqli = new mysqli(self::LOCALHOST, self::USER, self::PASSWORD, self::DATABASE);
-        }catch (mysqli_sql_exception $e){
+            mysqli_set_charset($this->mysqli,"utf8mb4");
+            //echo 'connect success';
+        }catch (Exception $e){
             //Si no se puede realizar la conexión. OJO: En la prueba no me funcionó.
+            echo '<br>ERROR 500 - FALLÓ CONEXIÓN A BASE DE DATOS:<br>'.$e->getMessage();
             http_response_code(500);
             exit;
         }     
     } 
 
+    public function listaCascaras(){        
+        $result = $this->mysqli->query("SELECT * FROM cascaras;"); 
+        $cascaras = $result->fetch_all(MYSQLI_ASSOC);          
+        $result->close();
+        //echo "Entra a Lista Cáscaras";
+        //var_dump($cascaras); 
+        return $cascaras;
+    }
 
-    public function prueba(){
-    	$resultado 	= $this->mysqli->query("SELECT * FROM gastos");
-		$gastos 	= $resultado->fetch_assoc();
-		 return $gastos;    
-        //var_dump($fila);
-	    }
-    
-    /**
-     * obtiene un solo registro dado su ID
-     * @param int $id identificador unico de registro
-     * @return array con los registros obtenidos de la base de datos
-     */
-    public function selectGasto($id=0){      
-        $stmt = $this->mysqli->prepare("SELECT * FROM gastos WHERE id=? ; ");
+    public function selectCascaraId($id=0){      
+        $stmt = $this->mysqli->prepare("SELECT * FROM cascaras WHERE id=? ; ");
         $stmt->bind_param('i', $id); 
         $stmt->execute();
         $result = $stmt->get_result();        
-        $gastos = $result->fetch_all(MYSQLI_ASSOC); 
+        $cascaras = $result->fetch_all(MYSQLI_ASSOC); 
         $stmt->close();
-        return $gastos;              
+        //var_dump($cascaras); 
+        return $cascaras;              
     }
-    
-    /**
-     * obtiene todos los registros de la tabla "gastos"
-     * @return Array array con los registros obtenidos de la base de datos
-     */
-    public function selectGastos(){        
-        $result = $this->mysqli->query("SELECT * FROM gastos; "); 
-                 
-        $gastos = $result->fetch_all(MYSQLI_ASSOC);          
-        $result->close();
-        return $gastos; 
-     
-    }
-    
-    /**
-     * añade un nuevo registro en la tabla gastos
-     * @param String $detalle
-     * @param int $valor
-     * @param Date $fecha
-     * @return bool TRUE|FALSE 
-     */
-     public function insert($detalle='', $valor=0, $fecha="2017-2-3"){
-        $stmt = $this->mysqli->prepare("INSERT INTO gastos(id, detalle, valor, fecha) VALUES (NULL, ?, ?, ?); ");
-        $stmt->bind_param('sis', $detalle, $valor, $fecha);
+
+    public function insertarCascara(
+                $preg='No hay pregunta', 
+                $resp1='No hay respuesta 1',
+                $resp2='No hay respuesta 2',
+                $resp3='No hay respuesta 3',
+                $resp4='No hay respuesta 4'){
+                
+        $stmt = $this->mysqli->prepare("INSERT INTO cascaras (id, preg, resp1, resp2, resp3, resp4) 
+        VALUES (NULL, ?, ?, ?, ?, ?);");
+        $stmt->bind_param('sssss', $preg, $resp1, $resp2, $resp3, $resp4);
         $r = $stmt->execute(); 
         $stmt->close();
-        return $r;        
+        //echo $r;
+        return $r;
     }
-
-
-
     
-    /**
-     * elimina un registro dado el ID
-     * @param int $id Identificador unico de registro
-     * @return Bool TRUE|FALSE
-     */
-    public function delete($id=0) {
-        $stmt = $this->mysqli->prepare("DELETE FROM gastos WHERE id = ? ; ");
+    public function borrarCascara($id=8) {
+        $stmt = $this->mysqli->prepare("DELETE FROM cascaras WHERE id = ? ; ");
         $stmt->bind_param('s', $id);
         $r = $stmt->execute(); 
         $stmt->close();
         return $r;
     }
-    
-    /**
-     * Actualiza registro dado su ID
-     * @param int $id Description
-     */
-    public function update($id, $newDetalle, $newValor, $newDate) {
-        if($this->checkID($id)){
-            $stmt = $this->mysqli->prepare("UPDATE gastos SET detalle=?, valor=?, fecha=? WHERE id = ? ; ");
-            $stmt->bind_param('sisi', $newDetalle, $newValor, $newDate, $id);
-            $r = $stmt->execute(); 
-            $stmt->close();
-            return $r;    
-        }
-        return false;
-    }
-    
-    /**
-     * verifica si un ID existe
-     * @param int $id Identificador unico de registro
-     * @return Bool TRUE|FALSE
-     */
+
     public function checkID($id){
-        $stmt = $this->mysqli->prepare("SELECT * FROM gastos WHERE ID=?");
+        $stmt = $this->mysqli->prepare("SELECT * FROM cascaras WHERE ID=?");
         $stmt->bind_param("s", $id);
         if($stmt->execute()){
             $stmt->store_result();    
@@ -121,5 +80,18 @@ class GastoDB {
         }        
         return false;
     }
+
+    public function modificarCascara($id, $newpreg, $newresp1, $newresp2, $newresp3, $newresp4) {
+        if($this->checkID($id)){
+            $stmt = $this->mysqli->prepare("UPDATE cascaras SET preg=?, resp1=?, resp2=?, resp3=?, resp4=? WHERE id = ? ; ");
+            $stmt->bind_param('sssssi', $newpreg, $newresp1, $newresp2, $newresp3, $newresp4, $id);
+            $r = $stmt->execute(); 
+            $stmt->close();
+            return $r;    
+        }
+        return false;
+    }    
+
+
     
-}
+}        
