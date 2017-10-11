@@ -52,7 +52,7 @@ class CascarasAPI {
     }
     
     private function getCascaras(){
-        if($_GET['action']=='cascaras'){         
+        if($_GET['action']=='cascaras_php'){         
             $db = new CascarasDB();
             if(isset($_GET['id'])){//muestra 1 solo registro si es que existiera ID                 
                 $response = $db->selectCascaraId($_GET['id']);                
@@ -69,18 +69,18 @@ class CascarasAPI {
     } 
     
     function saveCascara(){
-        if($_GET['action']=='cascaras'){   
+        if($_GET['action']=='cascaras_php'){   
             //Decodifica un string de JSON
             $obj = json_decode( file_get_contents('php://input') );   
             $objArr = (array)$obj;
             if (empty($objArr)){
-                $this->response(422,"error","Nothing to add. Check json");                           
+                $this->response(422,"error","Revise el JSON");                           
             }else if(isset($obj->preg)){
                 $cascara = new CascarasDB();     
                 $cascara->insertarCascara($obj->preg, $obj->resp1, $obj->resp2, $obj->resp3, $obj->resp4);
-                $this->response(200,"success","new record added");                             
+                $this->response(200,"success","Cáscara Adicionada 0K");                             
             }else{
-                $this->response(422,"error","The property is not defined");
+                $this->response(422,"error","Propiedad NO definida");
             }
         } else{$this->response(400);
         }  
@@ -88,17 +88,17 @@ class CascarasAPI {
 
     function updateCascara() {
         if( isset($_GET['action']) && isset($_GET['id']) ){
-            if($_GET['action']=='cascaras'){
+            if($_GET['action']=='cascaras_php'){
                 $obj = json_decode( file_get_contents('php://input') );   
                 $objArr = (array)$obj;
                 if (empty($objArr)){                        
-                    $this->response(422,"error","Nothing to add. Check json");                        
+                    $this->response(422,"error","Revise el JSON");                        
                 }else if(isset($obj->preg)){
                     $db = new CascarasDB();
                     $db->modificarCascara($_GET['id'], $obj->preg, $obj->resp1, $obj->resp2, $obj->resp3, $obj->resp4);
-                    $this->response(200,"success","Record updated");                             
+                    $this->response(200,"success","Cáscara Modificada 0k");                             
                 }else{
-                    $this->response(422,"error","The property is not defined");                        
+                    $this->response(422,"error","Propiedad NO definida");                        
                 }     
                 exit;
            }
@@ -108,7 +108,7 @@ class CascarasAPI {
 
     function deleteCascara(){
         if( isset($_GET['action']) && isset($_GET['id']) ){
-            if($_GET['action']=='cascaras'){                   
+            if($_GET['action']=='cascaras_php'){                   
                 $db = new CascarasDB();
                 $db->borrarCascara($_GET['id']);
                 $this->response(204);                   
@@ -117,9 +117,4 @@ class CascarasAPI {
         }
         $this->response(400);
     }
-
-
-
-
-
 }
